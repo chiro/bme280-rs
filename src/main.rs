@@ -12,18 +12,22 @@ const USAGE: &'static str = "
 Reading BME280 sensor value
 
 Usage:
-  bme280 <device>
+  bme280 <device> [--address <addr>]
   bme280 (-h | --help)
   bme280 (-v | --version)
 
 Options:
   -h --help    Show this help text.
+  --address <addr>     I2C device address [default: 0x77(=119)]
   -v --version    Show version.
 ";
+
+const BME280_DEFAULT_ADDRESS: u16 = 0x77;
 
 #[derive(Debug, Deserialize)]
 struct Args {
     arg_device: String,
+    flag_address: Option<u16>,
     flag_version: bool,
 }
 
@@ -41,5 +45,6 @@ fn main() {
         return;
     }
 
-    println!("<device> = {}", args.arg_device);
+    let address = args.flag_address.unwrap_or(BME280_DEFAULT_ADDRESS);
+    println!("<device> = {}, <addr> = 0x{:x}", args.arg_device, address)
 }

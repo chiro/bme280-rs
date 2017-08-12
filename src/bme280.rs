@@ -4,6 +4,7 @@ use i2cdev::core::I2CDevice;
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
 
+use utils;
 use utils::*;
 
 pub struct CompensationParams {
@@ -101,5 +102,33 @@ impl BME280 {
         bme280.params.load(&mut bme280.device)?;
         initialize(&mut bme280.device, &bme280.config)?;
         Ok(bme280)
+    }
+
+    pub fn raw_pressure(&mut self) -> Result<u32, LinuxI2CError> {
+        let v = self.device.smbus_read_i2c_block_data(0xF7, 3)?;
+        let p0 = v[0] as u32;
+        let p1 = v[1] as u32;
+        let p2 = v[2] as u32;
+        Ok((p0 << 12) + (p1 << 4) + (p2 >> 4))
+    }
+
+    pub fn raw_temperature(&mut self) -> Result<u32, LinuxI2CError> {
+        let v = self.device.smbus_read_i2c_block_data(0xFA, 3)?;
+        let t0 = v[0] as u32;
+        let t1 = v[1] as u32;
+        let t2 = v[2] as u32;
+        Ok((t0 << 12) + (t1 << 4) + (t2 >> 4))
+    }
+
+    pub fn raw_humidity(&mut self) -> Result<u32, LinuxI2CError> {
+        let v = self.device.smbus_read_i2c_block_data(0xFD, 2)?;
+        let h1 = v[0] as u32;
+        let h2 = v[1] as u32;
+        Ok((h1 << 8) + h2)
+    }
+
+    pub fn temperature(&mut self) -> Result<f32, LinuxI2CError> {
+        let raw_value = self.raw_temperature()?;
+        Ok(self.params.compensated_temp(raw_value))
     }
 }

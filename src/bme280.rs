@@ -4,6 +4,8 @@ use i2cdev::core::I2CDevice;
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
 
+use nix;
+
 use utils::*;
 
 struct CompensationParams {
@@ -247,10 +249,22 @@ impl BME280 {
             config: config,
             params: params,
         };
+        bme280.check_device_id()?;
         bme280.soft_reset()?;
         bme280.params.load(&mut bme280.device)?;
         bme280.initialize()?;
         Ok(bme280)
+    }
+
+    fn check_device_id(&mut self) -> Result<(), LinuxI2CError> {
+        use i2cdev::linux::LinuxI2CError::Nix;
+
+        const CHIP_ID: u8 = 0x60;
+        let id = self.device.smbus_read_byte_data(0xD0)?;
+        if CHIP_ID != id {
+            return Err(Nix(nix::Error::Sys((nix::errno::Errno::ENXIO))));
+        }
+        Ok(())
     }
 
     fn initialize(&mut self) -> Result<(), LinuxI2CError> {

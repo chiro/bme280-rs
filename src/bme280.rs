@@ -290,6 +290,23 @@ impl BME280 {
         Ok(())
     }
 
+    pub fn oneshot_measure(&mut self) -> Result<(), LinuxI2CError> {
+        let ctrl_meas_reg = self.device.smbus_read_byte_data(0xF4)?;
+        let new_value = (ctrl_meas_reg & 0xFC) | Mode::Force.to_raw();
+        let end_value = (ctrl_meas_reg & 0xFC) | Mode::Sleep.to_raw();
+
+        self.device.smbus_write_byte_data(0xF4, new_value)?;
+        // Wait for measurement end at most 20 ms.
+        for _ in 1..10 {
+            let v = self.device.smbus_read_byte_data(0xF4)?;
+            if v == end_value {
+                break;
+            }
+            thread::sleep(time::Duration::from_millis(2));
+        }
+        Ok(())
+    }
+
     pub fn raw_pressure(&mut self) -> Result<u32, LinuxI2CError> {
         let v = self.device.smbus_read_i2c_block_data(0xF7, 3)?;
         let p0 = v[0] as u32;

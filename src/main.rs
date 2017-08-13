@@ -6,8 +6,6 @@ extern crate bme280_rs;
 
 use docopt::Docopt;
 
-use std::{thread, time};
-
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
 
@@ -68,9 +66,7 @@ fn main() {
     let dev = LinuxI2CDevice::new(args.arg_device, address).unwrap();
     let mut bme280 = BME280::new(dev, config).unwrap();
 
-    // Sleep while measureing finishes.
-    let millis = time::Duration::from_millis(100);
-    thread::sleep(millis);
+    bme280.oneshot_measure().unwrap();
 
     if args.flag_temperature {
         println!("{}", bme280.temperature().unwrap());

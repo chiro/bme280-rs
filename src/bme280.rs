@@ -83,12 +83,18 @@ impl CompensationParams {
         (x1 + x2) as i32
     }
 
-    pub fn compensated_temp(&self, uncomp_t: u32) -> f32 {
-        let tf = ((self.fine_resolution_temp(uncomp_t) * 5 + 128) >> 8) as f32;
-        tf / 100.0
+    pub fn compensated_temp(&self, uncomp_t: u32) -> f64 {
+        const MAX: f64 = 85.0;
+        const MIN: f64 = -40.0;
+
+        let tf = ((self.fine_resolution_temp(uncomp_t) * 5 + 128) >> 8) as f64;
+        (tf / 100.0).max(MIN).min(MAX)
     }
 
     pub fn compensated_humidity(&self, uncomp_h: u32, uncomp_t: u32) -> f64 {
+        const MAX: f64 = 100.0;
+        const MIN: f64 = 0.0;
+
         let t_fine = self.fine_resolution_temp(uncomp_t);
         let x1 = (t_fine as f64) - 76800.0;
         let x2 = ((self.h4 as f64) * 64.0) + ((self.h5 as f64) / 16384.0) * x1;
@@ -99,7 +105,7 @@ impl CompensationParams {
         let x7 = x3 * x4 * (x5 * x6);
         let humidity = x7 * (1.0 - (self.h1 as f64) * x7 / 524288.0);
 
-        humidity
+        humidity.max(MIN).min(MAX)
     }
 
     pub fn compensated_pressure(&self, uncomp_p: u32, uncomp_t: u32) -> f64 {
@@ -126,13 +132,7 @@ impl CompensationParams {
         x2 = pressure * (self.p8 as f64) / 32768.0;
         pressure = pressure + (x1 + x2 + (self.p7 as f64)) / 16.0;
 
-        if pressure < MIN {
-            return MIN;
-        } else if pressure > MAX {
-            return MAX;
-        } else {
-            return pressure;
-        }
+        pressure.min(MAX).max(MIN)
     }
 }
 
@@ -219,7 +219,7 @@ impl BME280 {
         Ok((h1 << 8) + h2)
     }
 
-    pub fn temperature(&mut self) -> Result<f32, LinuxI2CError> {
+    pub fn temperature(&mut self) -> Result<f64, LinuxI2CError> {
         let raw_value = self.raw_temperature()?;
         Ok(self.params.compensated_temp(raw_value))
     }

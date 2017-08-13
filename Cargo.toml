@@ -1,6 +1,6 @@
 [package]
 name = "bme280-rs"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Yuichiro Hanada <i@chir.jp>"]
 
 [dependencies]

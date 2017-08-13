@@ -1,6 +1,6 @@
 [root]
 name = "bme280-rs"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "docopt 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "i2cdev 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",

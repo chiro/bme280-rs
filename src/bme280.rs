@@ -83,11 +83,13 @@ pub enum Mode {
     Normal,
 }
 
-fn to_value(mode: Mode) -> u8 {
-    match mode {
-        Mode::Sleep => 0,
-        Mode::Force => 1,
-        Mode::Normal => 3,
+impl Mode {
+    fn to_raw(&self) -> u8 {
+        match self {
+            &Mode::Sleep => 0,
+            &Mode::Force => 1,
+            &Mode::Normal => 3,
+        }
     }
 }
 
@@ -124,7 +126,7 @@ impl BME280 {
         let ctrl_hum_reg = self.config.oversampling_humidity;
         let ctrl_meas_reg = (self.config.oversampling_temperature << 5) |
                             (self.config.oversampling_pressure << 2) |
-                            to_value(self.config.mode.clone());
+                            self.config.mode.to_raw();
         let config_reg = (self.config.standby_time << 5) | (self.config.iir_filter << 2) |
                          (self.config.spi3w_enabled as u8);
 

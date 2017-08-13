@@ -1,5 +1,5 @@
 [package]
-name = "bme280"
+name = "bme280-rs"
 version = "0.0.1"
 authors = ["Yuichiro Hanada <i@chir.jp>"]
 
@@ -8,3 +8,7 @@ docopt = "*"
 i2cdev = "*"
 serde = "*"
 serde_derive = "*"
+
+[[bin]]
+doc = false
+name = "bme280"

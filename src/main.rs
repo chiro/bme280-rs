@@ -2,7 +2,7 @@ extern crate docopt;
 extern crate i2cdev;
 #[macro_use]
 extern crate serde_derive;
-extern crate bme280;
+extern crate bme280_rs;
 
 use docopt::Docopt;
 
@@ -11,7 +11,7 @@ use std::{thread, time};
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
 
-use bme280::*;
+use bme280_rs::*;
 
 const USAGE: &'static str = "
 Reading BME280 sensor value

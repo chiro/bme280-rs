@@ -1,5 +1,3 @@
-extern crate i2cdev;
-
 use i2cdev::core::I2CDevice;
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;

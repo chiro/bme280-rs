@@ -2,6 +2,7 @@ extern crate docopt;
 extern crate i2cdev;
 #[macro_use]
 extern crate serde_derive;
+extern crate bme280;
 
 use docopt::Docopt;
 
@@ -10,9 +11,6 @@ use std::{thread, time};
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
 
-mod utils;
-
-mod bme280;
 use bme280::*;
 
 const USAGE: &'static str = "

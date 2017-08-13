@@ -19,13 +19,15 @@ const USAGE: &'static str = "
 Reading BME280 sensor value
 
 Usage:
-  bme280 <device> [--address <addr>]
+  bme280 <device> [--address <addr>] [--temperature] [--humidity]
   bme280 (-h | --help)
   bme280 (-v | --version)
 
 Options:
   -h --help    Show this help text.
   --address <addr>     I2C device address [default: 119] (=0x77)
+  --temperature    Show temperature.
+  --humidity    Show humidity
   -v --version    Show version.
 ";
 
@@ -36,6 +38,8 @@ struct Args {
     arg_device: String,
     flag_address: Option<u16>,
     flag_version: bool,
+    flag_temperature: bool,
+    flag_humidity: bool,
 }
 
 #[cfg(not(target_os = "linux"))]
@@ -57,7 +61,7 @@ fn main() {
         mode: Mode::Force,
         oversampling_temperature: 1,
         oversampling_pressure: 1,
-        oversampling_humidity: 1,
+        oversampling_humidity: 2,
         standby_time: 5,
         iir_filter: 0,
         spi3w_enabled: false,
@@ -67,17 +71,13 @@ fn main() {
     let mut bme280 = BME280::new(dev, config).unwrap();
 
     // Sleep while measureing finishes.
-    let ten_millis = time::Duration::from_millis(10);
-    thread::sleep(ten_millis);
+    let millis = time::Duration::from_millis(100);
+    thread::sleep(millis);
 
-    let raw_pressure = bme280.raw_pressure().unwrap();
-    let raw_temperature = bme280.raw_temperature().unwrap();
-    let raw_humidity = bme280.raw_humidity().unwrap();
-    println!("raw_temp = {}, raw_press = {}, raw_humid = {}",
-             raw_temperature,
-             raw_pressure,
-             raw_humidity);
-
-    println!("temperature = {}", bme280.temperature().unwrap());
-    println!("humidity = {}", bme280.humidity().unwrap());
+    if args.flag_temperature {
+        println!("{}", bme280.temperature().unwrap());
+    }
+    if args.flag_humidity {
+        println!("{:.2}", bme280.humidity().unwrap());
+    }
 }

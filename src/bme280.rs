@@ -140,10 +140,13 @@ impl CompensationParams {
     }
 }
 
-#[derive(Clone)]
+/// Power mode of BME280.
 pub enum Mode {
+    /// No operation mode, all registeres are accessible.
     Sleep,
+    /// Perform one-shot measurement.
     Force,
+    /// Do perpetual cycling of measurements.
     Normal,
 }
 
@@ -157,6 +160,7 @@ impl Mode {
     }
 }
 
+/// Oversampling options for humidity, temperature, pressure measurement.
 pub enum Oversampling {
     No,
     X1,
@@ -179,14 +183,24 @@ impl Oversampling {
     }
 }
 
+/// Stand-by time options for Normal mode.
+/// This option doesn't have any effect on Sleep mode and Force mode.
 pub enum StandbyTime {
+    /// 1 ms.
     Ms1,
+    /// 62.5 ms.
     Ms62_5,
+    /// 125 ms.
     Ms125,
+    /// 250 ms.
     Ms250,
+    /// 500 ms.
     Ms500,
+    /// 1000 ms.
     Ms1000,
+    /// 10 ms.
     Ms10,
+    /// 20 ms.
     Ms20,
 }
 
@@ -205,6 +219,7 @@ impl StandbyTime {
     }
 }
 
+/// Coefficient for internal IIR filter for temperature and pressure measurement.
 pub enum IIRFilterCoeff {
     OFF,
     X2,
@@ -225,6 +240,7 @@ impl IIRFilterCoeff {
     }
 }
 
+/// Device configuration.
 pub struct Config {
     pub mode: Mode,
     pub oversampling_temperature: Oversampling,
@@ -235,6 +251,7 @@ pub struct Config {
     pub spi3w_enabled: bool,
 }
 
+/// Device.
 pub struct BME280 {
     device: LinuxI2CDevice,
     config: Config,
@@ -242,6 +259,7 @@ pub struct BME280 {
 }
 
 impl BME280 {
+    /// Return new BME280 device with the provided configuration.
     pub fn new(dev: LinuxI2CDevice, config: Config) -> Result<BME280, LinuxI2CError> {
         let params = CompensationParams::new();
         let mut bme280 = BME280 {
@@ -282,6 +300,7 @@ impl BME280 {
         self.device.smbus_write_byte_data(0xF5, config_reg)
     }
 
+    /// Do soft reset.
     pub fn soft_reset(&mut self) -> Result<(), LinuxI2CError> {
         const SOFT_RESET_CMD: u8 = 0xB6;
         self.device.smbus_write_byte_data(0xE0, SOFT_RESET_CMD)?;
@@ -290,6 +309,9 @@ impl BME280 {
         Ok(())
     }
 
+    /// Do one-shot measurement.
+    /// After calling this method, you can get values by |temperature|,
+    /// |humidity| and |pressure| methods.
     pub fn oneshot_measure(&mut self) -> Result<(), LinuxI2CError> {
         let ctrl_meas_reg = self.device.smbus_read_byte_data(0xF4)?;
         let new_value = (ctrl_meas_reg & 0xFC) | Mode::Force.to_raw();
@@ -330,17 +352,20 @@ impl BME280 {
         Ok((h1 << 8) + h2)
     }
 
+    /// Gets current temperature in degree Celsius.
     pub fn temperature(&mut self) -> Result<f64, LinuxI2CError> {
         let raw_value = self.raw_temperature()?;
         Ok(self.params.compensated_temp(raw_value))
     }
 
+    /// Gets current humidity in percent.
     pub fn humidity(&mut self) -> Result<f64, LinuxI2CError> {
         let raw_t = self.raw_temperature()?;
         let raw_h = self.raw_humidity()?;
         Ok(self.params.compensated_humidity(raw_h, raw_t))
     }
 
+    /// Gets current pressure in Pa.
     pub fn pressure(&mut self) -> Result<f64, LinuxI2CError> {
         let raw_t = self.raw_temperature()?;
         let raw_p = self.raw_pressure()?;

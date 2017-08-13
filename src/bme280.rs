@@ -153,13 +153,81 @@ impl Mode {
     }
 }
 
+pub enum Oversampling {
+    No,
+    X1,
+    X2,
+    X4,
+    X8,
+    X16,
+}
+
+impl Oversampling {
+    fn to_raw(&self) -> u8 {
+        match self {
+            &Oversampling::No => 0,
+            &Oversampling::X1 => 1,
+            &Oversampling::X2 => 2,
+            &Oversampling::X4 => 3,
+            &Oversampling::X8 => 4,
+            &Oversampling::X16 => 5,
+        }
+    }
+}
+
+pub enum StandbyTime {
+    Ms1,
+    Ms62_5,
+    Ms125,
+    Ms250,
+    Ms500,
+    Ms1000,
+    Ms10,
+    Ms20,
+}
+
+impl StandbyTime {
+    fn to_raw(&self) -> u8 {
+        match self {
+            &StandbyTime::Ms1 => 0,
+            &StandbyTime::Ms62_5 => 1,
+            &StandbyTime::Ms125 => 2,
+            &StandbyTime::Ms250 => 3,
+            &StandbyTime::Ms500 => 4,
+            &StandbyTime::Ms1000 => 5,
+            &StandbyTime::Ms10 => 6,
+            &StandbyTime::Ms20 => 7,
+        }
+    }
+}
+
+pub enum IIRFilterCoeff {
+    OFF,
+    X2,
+    X4,
+    X8,
+    X16,
+}
+
+impl IIRFilterCoeff {
+    fn to_raw(&self) -> u8 {
+        match self {
+            &IIRFilterCoeff::OFF => 0,
+            &IIRFilterCoeff::X2 => 1,
+            &IIRFilterCoeff::X4 => 2,
+            &IIRFilterCoeff::X8 => 3,
+            &IIRFilterCoeff::X16 => 4,
+        }
+    }
+}
+
 pub struct Config {
     pub mode: Mode,
-    pub oversampling_temperature: u8,
-    pub oversampling_pressure: u8,
-    pub oversampling_humidity: u8,
-    pub standby_time: u8,
-    pub iir_filter: u8,
+    pub oversampling_temperature: Oversampling,
+    pub oversampling_pressure: Oversampling,
+    pub oversampling_humidity: Oversampling,
+    pub standby_time: StandbyTime,
+    pub filter_coeff: IIRFilterCoeff,
     pub spi3w_enabled: bool,
 }
 
@@ -183,11 +251,12 @@ impl BME280 {
     }
 
     fn initialize(&mut self) -> Result<(), LinuxI2CError> {
-        let ctrl_hum_reg = self.config.oversampling_humidity;
-        let ctrl_meas_reg = (self.config.oversampling_temperature << 5) |
-                            (self.config.oversampling_pressure << 2) |
+        let ctrl_hum_reg = self.config.oversampling_humidity.to_raw();
+        let ctrl_meas_reg = (self.config.oversampling_temperature.to_raw() << 5) |
+                            (self.config.oversampling_pressure.to_raw() << 2) |
                             self.config.mode.to_raw();
-        let config_reg = (self.config.standby_time << 5) | (self.config.iir_filter << 2) |
+        let config_reg = (self.config.standby_time.to_raw() << 5) |
+                         (self.config.filter_coeff.to_raw() << 2) |
                          (self.config.spi3w_enabled as u8);
 
         // ctrl_hum_reg has to be written before ctrl_meas_reg

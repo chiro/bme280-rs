@@ -59,11 +59,11 @@ fn main() {
     let address = args.flag_address.unwrap_or(BME280_DEFAULT_ADDRESS);
     let config: Config = Config {
         mode: Mode::Force,
-        oversampling_temperature: 1,
-        oversampling_pressure: 1,
-        oversampling_humidity: 2,
-        standby_time: 5,
-        iir_filter: 0,
+        oversampling_temperature: Oversampling::X1,
+        oversampling_pressure: Oversampling::X1,
+        oversampling_humidity: Oversampling::X2,
+        standby_time: StandbyTime::Ms1,
+        filter_coeff: IIRFilterCoeff::OFF,
         spi3w_enabled: false,
     };
 

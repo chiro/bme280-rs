@@ -1,3 +1,5 @@
+use std::{thread, time};
+
 use i2cdev::core::I2CDevice;
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
@@ -245,6 +247,7 @@ impl BME280 {
             config: config,
             params: params,
         };
+        bme280.soft_reset()?;
         bme280.params.load(&mut bme280.device)?;
         bme280.initialize()?;
         Ok(bme280)
@@ -263,6 +266,14 @@ impl BME280 {
         self.device.smbus_write_byte_data(0xF2, ctrl_hum_reg)?;
         self.device.smbus_write_byte_data(0xF4, ctrl_meas_reg)?;
         self.device.smbus_write_byte_data(0xF5, config_reg)
+    }
+
+    pub fn soft_reset(&mut self) -> Result<(), LinuxI2CError> {
+        const SOFT_RESET_CMD: u8 = 0xB6;
+        self.device.smbus_write_byte_data(0xE0, SOFT_RESET_CMD)?;
+        // Startup time is 2ms as per the data sheet.
+        thread::sleep(time::Duration::from_millis(2));
+        Ok(())
     }
 
     pub fn raw_pressure(&mut self) -> Result<u32, LinuxI2CError> {

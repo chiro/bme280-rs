@@ -30,12 +30,10 @@ Options:
   -v --version    Show version.
 ";
 
-const BME280_DEFAULT_ADDRESS: u16 = 0x76;
-
 #[derive(Debug, Deserialize)]
 struct Args {
     arg_device: String,
-    flag_address: Option<u16>,
+    flag_address: u16,
     flag_version: bool,
     flag_temperature: bool,
     flag_humidity: bool,
@@ -56,7 +54,7 @@ fn main() {
         return;
     }
 
-    let address = args.flag_address.unwrap_or(BME280_DEFAULT_ADDRESS);
+    let address = args.flag_address;
     let config: Config = Config {
         mode: Mode::Force,
         oversampling_temperature: Oversampling::X1,

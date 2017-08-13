@@ -81,6 +81,6 @@ fn main() {
         println!("{:.2}", bme280.humidity().unwrap());
     }
     if args.flag_pressure {
-        println!("{}", bme280.pressure().unwrap() / 100.0);
+        println!("{:.2}", bme280.pressure().unwrap() / 100.0);
     }
 }

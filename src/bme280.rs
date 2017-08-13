@@ -103,8 +103,8 @@ impl CompensationParams {
     }
 
     pub fn compensated_pressure(&self, uncomp_p: u32, uncomp_t: u32) -> f64 {
-        const max: f64 = 110000.0;
-        const min: f64 = 30000.0;
+        const MAX: f64 = 110000.0;
+        const MIN: f64 = 30000.0;
 
         let t_fine = self.fine_resolution_temp(uncomp_t) as f64;
         let mut x1 = t_fine / 2.0 - 64000.0;
@@ -117,7 +117,7 @@ impl CompensationParams {
 
         // To avoid zero-division error.
         if x1 == 0.0 {
-            return min;
+            return MIN;
         }
 
         let mut pressure = 1048576.0 - (uncomp_p as f64);
@@ -126,10 +126,10 @@ impl CompensationParams {
         x2 = pressure * (self.p8 as f64) / 32768.0;
         pressure = pressure + (x1 + x2 + (self.p7 as f64)) / 16.0;
 
-        if pressure < min {
-            return min;
-        } else if pressure > max {
-            return max;
+        if pressure < MIN {
+            return MIN;
+        } else if pressure > MAX {
+            return MAX;
         } else {
             return pressure;
         }

@@ -14,6 +14,15 @@ struct CompensationParams {
     h4: i16,
     h5: i16,
     h6: i8,
+    p1: u16,
+    p2: i16,
+    p3: i16,
+    p4: i16,
+    p5: i16,
+    p6: i16,
+    p7: i16,
+    p8: i16,
+    p9: i16,
 }
 
 impl CompensationParams {
@@ -28,6 +37,15 @@ impl CompensationParams {
             h4: 0,
             h5: 0,
             h6: 0,
+            p1: 0,
+            p2: 0,
+            p3: 0,
+            p4: 0,
+            p5: 0,
+            p6: 0,
+            p7: 0,
+            p8: 0,
+            p9: 0,
         }
     }
 
@@ -44,6 +62,15 @@ impl CompensationParams {
         self.h4 = (e4 << 4) + ((e5 & 0x0F) as i16);
         self.h5 = (e6 << 4) + (((e5 & 0xF0) >> 4) as i16);
         self.h6 = dev.smbus_read_byte_data(0xE7)? as i8;
+        self.p1 = read_unsigned_short(dev, 0x8E)?;
+        self.p2 = read_signed_short(dev, 0x90)?;
+        self.p3 = read_signed_short(dev, 0x92)?;
+        self.p4 = read_signed_short(dev, 0x94)?;
+        self.p5 = read_signed_short(dev, 0x96)?;
+        self.p6 = read_signed_short(dev, 0x98)?;
+        self.p7 = read_signed_short(dev, 0x9A)?;
+        self.p8 = read_signed_short(dev, 0x9C)?;
+        self.p9 = read_signed_short(dev, 0x9E)?;
         Ok(())
     }
 
@@ -73,6 +100,39 @@ impl CompensationParams {
         let humidity = x7 * (1.0 - (self.h1 as f64) * x7 / 524288.0);
 
         humidity
+    }
+
+    pub fn compensated_pressure(&self, uncomp_p: u32, uncomp_t: u32) -> f64 {
+        const max: f64 = 110000.0;
+        const min: f64 = 30000.0;
+
+        let t_fine = self.fine_resolution_temp(uncomp_t) as f64;
+        let mut x1 = t_fine / 2.0 - 64000.0;
+        let mut x2 = x1 * x1 * (self.p6 as f64) / 32768.0;
+        x2 = x2 + x1 * (self.p5 as f64) * 2.0;
+        x2 = x2 / 4.0 + (self.p4 as f64) * 65536.0;
+        let x3 = (self.p3 as f64) * x1 * x1 / 524288.0;
+        x1 = (x3 + (self.p2 as f64) * x1) / 524288.0;
+        x1 = (1.0 + x1 / 32768.0) * (self.p1 as f64);
+
+        // To avoid zero-division error.
+        if x1 == 0.0 {
+            return min;
+        }
+
+        let mut pressure = 1048576.0 - (uncomp_p as f64);
+        pressure = (pressure - (x2 / 4096.0)) * 6250.0 / x1;
+        x1 = (self.p9 as f64) * pressure * pressure / 2147483648.0;
+        x2 = pressure * (self.p8 as f64) / 32768.0;
+        pressure = pressure + (x1 + x2 + (self.p7 as f64)) / 16.0;
+
+        if pressure < min {
+            return min;
+        } else if pressure > max {
+            return max;
+        } else {
+            return pressure;
+        }
     }
 }
 
@@ -168,5 +228,11 @@ impl BME280 {
         let raw_t = self.raw_temperature()?;
         let raw_h = self.raw_humidity()?;
         Ok(self.params.compensated_humidity(raw_h, raw_t))
+    }
+
+    pub fn pressure(&mut self) -> Result<f64, LinuxI2CError> {
+        let raw_t = self.raw_temperature()?;
+        let raw_p = self.raw_pressure()?;
+        Ok(self.params.compensated_pressure(raw_p, raw_t))
     }
 }

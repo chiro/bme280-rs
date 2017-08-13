@@ -1,5 +1,5 @@
 # bme280-rs
-A library and an executable for using bme280 connected I2C on Linux.
+A library and an executable for using bme280 connected via I2C on Linux.
 
 ## Usage
 ```bash

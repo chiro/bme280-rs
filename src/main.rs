@@ -17,15 +17,16 @@ const USAGE: &'static str = "
 Reading BME280 sensor value
 
 Usage:
-  bme280 <device> [--address <addr>] [--temperature] [--humidity]
+  bme280 <device> [--address <addr>] [--temperature] [--humidity] [--pressure]
   bme280 (-h | --help)
   bme280 (-v | --version)
 
 Options:
   -h --help    Show this help text.
   --address <addr>     I2C device address [default: 119] (=0x77)
-  --temperature    Show temperature.
-  --humidity    Show humidity
+  --temperature    Show temperature in degree Celsius.
+  --humidity    Show humidity in %.
+  --pressure    Show pressure in hPa.
   -v --version    Show version.
 ";
 
@@ -38,6 +39,7 @@ struct Args {
     flag_version: bool,
     flag_temperature: bool,
     flag_humidity: bool,
+    flag_pressure: bool,
 }
 
 #[cfg(not(target_os = "linux"))]
@@ -77,5 +79,8 @@ fn main() {
     }
     if args.flag_humidity {
         println!("{:.2}", bme280.humidity().unwrap());
+    }
+    if args.flag_pressure {
+        println!("{}", bme280.pressure().unwrap() / 100.0);
     }
 }

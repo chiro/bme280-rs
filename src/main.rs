@@ -79,4 +79,5 @@ fn main() {
              raw_humidity);
 
     println!("temperature = {}", bme280.temperature().unwrap());
+    println!("humidity = {}", bme280.humidity().unwrap());
 }

@@ -7,7 +7,6 @@ use docopt::Docopt;
 
 use std::{thread, time};
 
-use i2cdev::core::I2CDevice;
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
 
@@ -74,7 +73,7 @@ fn main() {
     let raw_pressure = bme280.raw_pressure().unwrap();
     let raw_temperature = bme280.raw_temperature().unwrap();
     let raw_humidity = bme280.raw_humidity().unwrap();
-    println!("uncomp_temp = {}, uncomp_press = {}, uncomp_humid = {}",
+    println!("raw_temp = {}, raw_press = {}, raw_humid = {}",
              raw_temperature,
              raw_pressure,
              raw_humidity);

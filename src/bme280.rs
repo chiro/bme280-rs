@@ -4,7 +4,6 @@ use i2cdev::core::I2CDevice;
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
 
-use utils;
 use utils::*;
 
 pub struct CompensationParams {
@@ -71,20 +70,6 @@ pub struct Config {
     pub spi3w_enabled: bool,
 }
 
-pub fn initialize(dev: &mut LinuxI2CDevice, config: &Config) -> Result<(), LinuxI2CError> {
-    let ctrl_hum_reg: u8 = config.oversampling_humidity;
-    let ctrl_meas_reg: u8 = (config.oversampling_temperature << 5) |
-                            (config.oversampling_pressure << 2) |
-                            to_value(config.mode.clone());
-    let config_reg: u8 = (config.standby_time << 5) | (config.iir_filter << 2) |
-                         (config.spi3w_enabled as u8);
-
-    // ctrl_hum_reg has to be written before ctrl_meas_reg
-    dev.smbus_write_byte_data(0xF2, ctrl_hum_reg)?;
-    dev.smbus_write_byte_data(0xF4, ctrl_meas_reg)?;
-    dev.smbus_write_byte_data(0xF5, config_reg)
-}
-
 pub struct BME280 {
     pub device: LinuxI2CDevice,
     config: Config,
@@ -100,8 +85,22 @@ impl BME280 {
             params: params,
         };
         bme280.params.load(&mut bme280.device)?;
-        initialize(&mut bme280.device, &bme280.config)?;
+        bme280.initialize()?;
         Ok(bme280)
+    }
+
+    fn initialize(&mut self) -> Result<(), LinuxI2CError> {
+        let ctrl_hum_reg = self.config.oversampling_humidity;
+        let ctrl_meas_reg = (self.config.oversampling_temperature << 5) |
+                            (self.config.oversampling_pressure << 2) |
+                            to_value(self.config.mode.clone());
+        let config_reg = (self.config.standby_time << 5) | (self.config.iir_filter << 2) |
+                         (self.config.spi3w_enabled as u8);
+
+        // ctrl_hum_reg has to be written before ctrl_meas_reg
+        self.device.smbus_write_byte_data(0xF2, ctrl_hum_reg)?;
+        self.device.smbus_write_byte_data(0xF4, ctrl_meas_reg)?;
+        self.device.smbus_write_byte_data(0xF5, config_reg)
     }
 
     pub fn raw_pressure(&mut self) -> Result<u32, LinuxI2CError> {

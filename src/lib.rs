@@ -1,7 +1,7 @@
 extern crate i2cdev;
 extern crate nix;
 
+mod bme280;
 mod utils;
 
-pub mod bme280;
 pub use bme280::*;

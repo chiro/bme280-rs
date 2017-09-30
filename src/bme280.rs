@@ -185,6 +185,7 @@ impl Oversampling {
 
 /// Stand-by time options for Normal mode.
 /// This option doesn't have any effect on Sleep mode and Force mode.
+#[allow(non_camel_case_types)]
 pub enum StandbyTime {
     /// 1 ms.
     Ms1,

@@ -43,20 +43,66 @@
         </form>
     </nav>
 
-    <section id='main' class="content"><pre class="line-numbers"><span id="1">1</span>
-<span id="2">2</span>
-<span id="3">3</span>
-<span id="4">4</span>
-<span id="5">5</span>
-<span id="6">6</span>
-<span id="7">7</span>
+    <section id='main' class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
 </pre><pre class="rust ">
+<span class="doccomment">//! # bme280-rs</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This crate provides you a way to access bme280 via Linux I2C interface.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Examples</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! let config: Config = Config {</span>
+<span class="doccomment">//!     mode: Mode::Force,</span>
+<span class="doccomment">//!     oversampling_temperature: Oversampling::X1,</span>
+<span class="doccomment">//!     oversampling_pressure: Oversampling::X1,</span>
+<span class="doccomment">//!     oversampling_humidity: Oversampling::X2,</span>
+<span class="doccomment">//!     standby_time: StandbyTime::Ms1,</span>
+<span class="doccomment">//!     filter_coeff: IIRFilterCoeff::OFF,</span>
+<span class="doccomment">//!     spi3w_enabled: false,</span>
+<span class="doccomment">//! };</span>
+<span class="doccomment">//! let dev = LinuxI2CDevice::new(&quot;/dev/i2c-0&quot;, 119).unwrap();</span>
+<span class="doccomment">//! let mut bme280 = BME280::new(dev, config).unwrap();</span>
+<span class="doccomment">//! bme280.oneshot_measure().unwrap();</span>
+<span class="doccomment">//! println!(&quot;{}&quot;, bme280.temperature().unwrap());</span>
+<span class="doccomment">//! println!(&quot;{:.2}&quot;, bme280.humidity().unwrap());</span>
+<span class="doccomment">//! println!(&quot;{:.2}&quot;, bme280.pressure().unwrap() / 100.0);</span>
+<span class="doccomment">//! ```</span>
+
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">i2cdev</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">nix</span>;
 
+<span class="kw">mod</span> <span class="ident">bme280</span>;
 <span class="kw">mod</span> <span class="ident">utils</span>;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bme280</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bme280</span>::<span class="kw-2">*</span>;
 </pre>
 </section>

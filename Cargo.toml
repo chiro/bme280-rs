@@ -13,3 +13,4 @@ serde_derive = "*"
 [[bin]]
 doc = false
 name = "bme280"
+path = "src/main.rs"

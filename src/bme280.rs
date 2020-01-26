@@ -4,8 +4,6 @@ use i2cdev::core::I2CDevice;
 #[cfg(target_os = "linux")]
 use i2cdev::linux::*;
 
-use nix;
-
 use utils::*;
 
 struct CompensationParams {
@@ -281,19 +279,19 @@ impl BME280 {
         const CHIP_ID: u8 = 0x60;
         let id = self.device.smbus_read_byte_data(0xD0)?;
         if CHIP_ID != id {
-            return Err(Nix(nix::Error::Sys((nix::errno::Errno::ENXIO))));
+            return Err(Nix(nix::Error::Sys(nix::errno::Errno::ENXIO)));
         }
         Ok(())
     }
 
     fn initialize(&mut self) -> Result<(), LinuxI2CError> {
         let ctrl_hum_reg = self.config.oversampling_humidity.to_raw();
-        let ctrl_meas_reg = (self.config.oversampling_temperature.to_raw() << 5) |
-                            (self.config.oversampling_pressure.to_raw() << 2) |
-                            self.config.mode.to_raw();
-        let config_reg = (self.config.standby_time.to_raw() << 5) |
-                         (self.config.filter_coeff.to_raw() << 2) |
-                         (self.config.spi3w_enabled as u8);
+        let ctrl_meas_reg = (self.config.oversampling_temperature.to_raw() << 5)
+            | (self.config.oversampling_pressure.to_raw() << 2)
+            | self.config.mode.to_raw();
+        let config_reg = (self.config.standby_time.to_raw() << 5)
+            | (self.config.filter_coeff.to_raw() << 2)
+            | (self.config.spi3w_enabled as u8);
 
         // ctrl_hum_reg has to be written before ctrl_meas_reg
         self.device.smbus_write_byte_data(0xF2, ctrl_hum_reg)?;
